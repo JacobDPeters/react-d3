@@ -7,27 +7,24 @@ class ScatterPlot extends React.Component {
         this.drawHeight = this.props.height - this.props.margin.top - this.props.margin.bottom;
 
     }
-
-    // When the component mounts, call the `update()` method
     componentDidMount() {
         this.update();
     }
-    
-    // Whenever the component updates, call the `update()` method
+    // Whenever the component updates, select the <g> from the DOM, and use D3 to manipulte circles
     componentDidUpdate() {
         this.update();
     }
-
-    // Define the functions for `this.xScale()` and `this.yScale()` based on current data
     updateScales() {
-        // Calculate limits: minimum/maximum x and y values in the data
-        
+        // Calculate limits
+        let xMin = d3.min(this.props.data, (d) => +d.x * .9);
+        let xMax = d3.max(this.props.data, (d) => +d.x * 1.1);
+        let yMin = d3.min(this.props.data, (d) => +d.y * .9);
+        let yMax = d3.max(this.props.data, (d) => +d.y * 1.1);
 
-        // Define scales `this.xScale()` and `this.yScale()` using `d3.scaleLinear()`
-        
+        // Define scales
+        this.xScale = d3.scaleLinear().domain([xMin, xMax]).range([0, this.drawWidth])
+        this.yScale = d3.scaleLinear().domain([yMax, yMin]).range([0, this.drawHeight])
     }
-
-    // Update the position of the circles
     updatePoints() {
         // Define hovers 
         // Add tip
@@ -35,44 +32,67 @@ class ScatterPlot extends React.Component {
             return d.label;
         });
 
-        // Bind data: select all circles and bind data
-        
+        // Select all circles and bind data
+        let circles = d3.select(this.chartArea).selectAll('circle').data(this.props.data);
 
-        // Append and position elements: using `enter()` and `merge()`
-                  
+        //Use the .enter() method to get your entering elements, and assign their positions
+        circles.enter().append('circle')
+            .merge(circles)
+            .attr('r', (d) => this.props.radius)
+            .attr('fill', (d) => this.props.color2)
+            .attr('label', (d) => d.label)
+            .on('mouseover', tip.show)
+            .on('mouseout', tip.hide)
+            .style('fill-opacity', 0.3)
+            .transition().duration(500)
+            .attr('cx', (d) => this.xScale(d.x))
+            .attr('cy', (d) => this.yScale(d.y))
+            .style('stroke', "black")
+            .style('stroke-width', (d) => d.selected == true ? "10px" : "0px")
+            // images help: https://stackoverflow.com/questions/47261263/d3-js-plotting-images-with-nested-array-in-json
+        //methods to get images plotted
+        //let img = d3.select(this.chartArea).selectAll('g').data(this.props.data);
+        //img.enter().append('image').attr("xlink:href", (d) => d.logo_url)
 
-        // Exit and remove elements
-        
+        // Use the .exit() and .remove() methods to remove elements that are no longer in the data
+        circles.exit().remove();
 
         // Add hovers using the d3-tip library        
-        
+        d3.select(this.chartArea).call(tip);
     }
-
-    // Update axes
     updateAxes() {
-        // Define axis functions
-        
+        let xAxisFunction = d3.axisBottom()
+            .scale(this.xScale)
+            .ticks(5, 's');
 
-        // Draw axes: select your axes and call the axis functions defined above
-        
+        let yAxisFunction = d3.axisLeft()
+            .scale(this.yScale)
+            .ticks(5, 's');
+
+        d3.select(this.xAxis)
+            .call(xAxisFunction);
+
+        d3.select(this.yAxis)
+            .call(yAxisFunction);
     }
-
-    // Update function: call `updateScales()`, `updateAxes()`, and `updatePoints()`
     update() {
-        
+        this.updateScales();
+        this.updateAxes();
+        this.updatePoints();
     }
-
-    // Render method
     render() {
         return (
             <div className="chart-wrapper">
                 <svg className="chart" width={this.props.width} height={this.props.height}>
                     <text transform={`translate(${this.props.margin.left},15)`}>{this.props.title}</text>
-                    <g transform={`translate(${this.props.margin.left}, ${this.props.margin.top})`} />
+                    <g ref={(node) => { this.chartArea = node; }}
+                        transform={`translate(${this.props.margin.left}, ${this.props.margin.top})`} />
 
                     {/* Axes */}
-                    <g transform={`translate(${this.props.margin.left}, ${this.props.height - this.props.margin.bottom})`}></g>
-                    <g transform={`translate(${this.props.margin.left}, ${this.props.margin.top})`}></g>
+                    <g ref={(node) => { this.xAxis = node; }}
+                        transform={`translate(${this.props.margin.left}, ${this.props.height - this.props.margin.bottom})`}></g>
+                    <g ref={(node) => { this.yAxis = node; }}
+                        transform={`translate(${this.props.margin.left}, ${this.props.margin.top})`}></g>
 
                     {/* Axis labels */}
                     <text className="axis-label" transform={`translate(${this.props.margin.left + this.drawWidth / 2}, 
@@ -89,10 +109,10 @@ class ScatterPlot extends React.Component {
 
 ScatterPlot.defaultProps = {
     data: [{ x: 10, y: 20 }, { x: 15, y: 35 }],
-    width: 300,
-    height: 300,
-    radius: 5,
-    color: "blue",
+    width: 650,
+    height: 650,
+    radius: 20,
+    color2: "black",
     margin: {
         left: 50,
         right: 10,
@@ -101,5 +121,4 @@ ScatterPlot.defaultProps = {
     },
     xTitle: "X Title",
     yTitle: "Y Title",
-    title:"Chart Title"
 };
