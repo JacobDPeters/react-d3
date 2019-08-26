@@ -20,10 +20,10 @@ class App extends React.Component {
     }
     render() {
 
-        let data = this.state.data;
+        let {data,tax} = this.state;
 
         // Get list of possible x and y variables
-        let options = data.length === 0 ? [] : Object.keys(this.state.data[0]);
+        let options = data.length === 0 ? [] : Object.keys(data[0]);
         options = options.filter((d) => d !== "county" && d !== "state" && d !== "Taxonomy");
 
         let taxonomy_set = new Set([]);
@@ -43,7 +43,7 @@ class App extends React.Component {
 
         //let test = this.state.data.Taxonomy[0];
         //testing console output
-        console.log(this.state.data.filter(d => d.Taxonomy === 'Two'));
+        //console.log(this.state.data.filter(d => d.Taxonomy === 'Two'));
         // let tax = this.state.data.Taxonomy === 0 ? [] : Object.keys(this.state.data.Taxonomy);
         //https://stackoverflow.com/questions/42835535/javascript-array-of-dictionaries-get-all-key-value-pairs-from-one-dictionairy?rq=1
 
@@ -53,10 +53,18 @@ class App extends React.Component {
             return {
                 x: d[this.state.xVar],
                 y: d[this.state.yVar],
-                label: d.county + ", " + d.state,
-                selected: d.Taxonomy.toLowerCase().match(this.state.tax.toLowerCase()) != null && this.state.tax !== ''
+                label: d.county + "-" + d.state,
+                //selected: d.Taxonomy.toLowerCase().match(this.state.tax.toLowerCase()) != null && this.state.tax !== '',
+                Taxonomy: d.Taxonomy,
+                Logo: d.Logo
+                //can pass through more.
+
             };
         });
+        console.log(tax)
+        allData = allData.filter((row) => row.Taxonomy === tax);
+
+
 
         // let runFilter = (arr,filter) => {
         //     return {
@@ -94,7 +102,7 @@ class App extends React.Component {
                 {/* Taxonomy Select Menu */}
                     <div className="control-wrapper">
                         <label htmlFor="tax">Taxonomy:</label>
-                        <select id="Taxonomy" value={this.state.Taxonomy} className="custom-select" onChange={(d) => this.setState({ Taxonomy: d.target.value })}>
+                        <select id="Taxonomy" value={this.state.Taxonomy} className="custom-select" onChange={(d) => this.setState({ tax: d.target.value })}>
                             {taxonomy_types.map((d) => {
                                 return <option key={d}>{d}</option>
                             })}

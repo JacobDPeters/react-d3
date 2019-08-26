@@ -16,7 +16,7 @@ class ScatterPlot extends React.Component {
     }
     updateScales() {
         // Calculate limits
-        let xMin = d3.min(this.props.data, (d) => +d.x * .9);
+        let xMin = d3.min(this.props.data, (d) => Number(d.x) * .9); //functionally equiv
         let xMax = d3.max(this.props.data, (d) => +d.x * 1.1);
         let yMin = d3.min(this.props.data, (d) => +d.y * .9);
         let yMax = d3.max(this.props.data, (d) => +d.y * 1.1);
@@ -33,29 +33,28 @@ class ScatterPlot extends React.Component {
         });
 
         // Select all circles and bind data
-        let circles = d3.select(this.chartArea).selectAll('circle').data(this.props.data);
 
+        let images = d3.select(this.chartArea).selectAll('image').data(this.props.data);
+        
         //Use the .enter() method to get your entering elements, and assign their positions
-        circles.enter().append('circle')
-            .merge(circles)
-            .attr('r', (d) => this.props.radius)
-            .attr('fill', (d) => this.props.color2)
+        images.enter().append('image')
+            .merge(images)
+            //.attr('r', (d) => this.props.radius)
+            //.attr('fill', (d) => `url(#${d.label})`)
+            .attr('xlink:href', (d) => d.Logo)
+            .attr('height', '40px')
+            .attr('width', '40px')
             .attr('label', (d) => d.label)
             .on('mouseover', tip.show)
             .on('mouseout', tip.hide)
-            .style('fill-opacity', 0.3)
+            //.style('fill-opacity', 0.3)
             .transition().duration(500)
-            .attr('cx', (d) => this.xScale(d.x))
-            .attr('cy', (d) => this.yScale(d.y))
+            .attr('x', (d) => this.xScale(d.x))
+            .attr('y', (d) => this.yScale(d.y))
             .style('stroke', "black")
-            .style('stroke-width', (d) => d.selected == true ? "10px" : "0px")
-            // images help: https://stackoverflow.com/questions/47261263/d3-js-plotting-images-with-nested-array-in-json
-        //methods to get images plotted
-        //let img = d3.select(this.chartArea).selectAll('g').data(this.props.data);
-        //img.enter().append('image').attr("xlink:href", (d) => d.logo_url)
 
         // Use the .exit() and .remove() methods to remove elements that are no longer in the data
-        circles.exit().remove();
+        images.exit().remove();
 
         // Add hovers using the d3-tip library        
         d3.select(this.chartArea).call(tip);
@@ -109,8 +108,8 @@ class ScatterPlot extends React.Component {
 
 ScatterPlot.defaultProps = {
     data: [{ x: 10, y: 20 }, { x: 15, y: 35 }],
-    width: 650,
-    height: 650,
+    width: 800,
+    height: 800,
     radius: 20,
     color2: "black",
     margin: {
